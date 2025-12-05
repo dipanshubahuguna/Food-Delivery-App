@@ -4,6 +4,8 @@ package com.example.restaurant.restaurantService.controller;
 import java.util.*;
 import com.example.restaurant.restaurantService.dto.*;
 import com.example.restaurant.restaurantService.service.RestaurantService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,15 +19,13 @@ public class RestaurantController {
     RestaurantService restaurantService;
 
     @PostMapping(path = "/addRestaurant")
-    public ResponseEntity<RestaurantResponseDTO> addRestaurant(@RequestBody RestaurantRequestDTO restaurantRequestDTO){
-        System.out.println("name : " + restaurantRequestDTO.getRestaurantName());
+    public ResponseEntity<RestaurantResponseDTO> addRestaurant(@RequestBody @Valid RestaurantRequestDTO restaurantRequestDTO){
         RestaurantResponseDTO addedRestaurant = restaurantService.addRestaurant(restaurantRequestDTO);
-        System.out.println("name : " + addedRestaurant.getRestaurantName());
         return ResponseEntity.status(HttpStatus.CREATED).body(addedRestaurant);
     }
 
     @DeleteMapping(path = "/deleteRestaurant/{restaurant_id}")
-    public ResponseEntity<Void> removeRestaurant(@PathVariable Long restaurant_id) {
+    public ResponseEntity<Void> removeRestaurant(@PathVariable @NotNull Long restaurant_id) {
         restaurantService.removeRestaurant(restaurant_id);
         return ResponseEntity.noContent().build();
     }
@@ -41,8 +41,5 @@ public class RestaurantController {
         }
         return ResponseEntity.ok(restaurantList);
     }
-
-
-
 
 }
