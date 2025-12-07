@@ -1,4 +1,4 @@
-package com.example.restaurant.restaurantService.dto;
+package com.example.restaurant.restaurantService.dto.restaurant;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

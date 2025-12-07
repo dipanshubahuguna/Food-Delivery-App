@@ -2,10 +2,14 @@ package com.example.restaurant.restaurantService.controller;
 
 
 import java.util.*;
-import com.example.restaurant.restaurantService.dto.*;
-import com.example.restaurant.restaurantService.service.RestaurantService;
+
+import com.example.restaurant.restaurantService.dto.restaurant.RestaurantRequestDTO;
+import com.example.restaurant.restaurantService.dto.restaurant.RestaurantResponseDTO;
+import com.example.restaurant.restaurantService.service.restaurant.RestaurantService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,32 +18,34 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(path = "/restaurant")
 public class RestaurantController {
+    private final RestaurantService restaurantService;
+    public RestaurantController(RestaurantService restaurantService) {
+        this.restaurantService = restaurantService;
+    }
 
-    @Autowired
-    RestaurantService restaurantService;
-
-    @PostMapping(path = "/addRestaurant")
-    public ResponseEntity<RestaurantResponseDTO> addRestaurant(@RequestBody @Valid RestaurantRequestDTO restaurantRequestDTO){
+    @PostMapping(path = "/add-restaurant")
+    public ResponseEntity<RestaurantResponseDTO> addRestaurant(
+            @RequestBody @Valid RestaurantRequestDTO restaurantRequestDTO){
         RestaurantResponseDTO addedRestaurant = restaurantService.addRestaurant(restaurantRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(addedRestaurant);
     }
 
-    @DeleteMapping(path = "/deleteRestaurant/{restaurant_id}")
-    public ResponseEntity<Void> removeRestaurant(@PathVariable @NotNull Long restaurant_id) {
+    @DeleteMapping(path = "/delete-restaurant/{restaurant_id}")
+    public ResponseEntity<Void> removeRestaurant(@PathVariable @Positive @NotNull Long restaurant_id) {
         restaurantService.removeRestaurant(restaurant_id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(path = "/getRestaurants")
-    public ResponseEntity<List<RestaurantResponseDTO>> getRestaurantList(
-            @RequestParam(value = "address", required = false, defaultValue = "none") String address) {
-        List<RestaurantResponseDTO> restaurantList;
-        if(!address.equals("none")) {
-            restaurantList = restaurantService.getRestaurantList(address);
-        }else {
-            restaurantList = null;
-        }
-        return ResponseEntity.ok(restaurantList);
+    @GetMapping(path = "/get-restaurants/{address}")
+    public ResponseEntity<List<RestaurantResponseDTO>> getRestaurantsList(
+            @PathVariable @NotNull String address) {
+        return ResponseEntity.ok(restaurantService.getRestaurantsList(address));
+    }
+
+    @GetMapping(path = "/get-restaurant/{restaurant_id}")
+    public ResponseEntity<RestaurantResponseDTO> getRestaurant(
+            @PathVariable @Positive @NotNull Long restaurant_id) {
+        return ResponseEntity.ok(restaurantService.getRestaurant(restaurant_id));
     }
 
 }

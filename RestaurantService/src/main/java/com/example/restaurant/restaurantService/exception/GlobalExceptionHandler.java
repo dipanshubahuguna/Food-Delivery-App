@@ -14,6 +14,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
+    @ExceptionHandler(MenuItemNotFoundException.class)
+    public ResponseEntity<?> handleMenuItemNotFound(MenuItemNotFoundException ex) {
+        return ResponseEntity.status((HttpStatus.NOT_FOUND)).body(ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodValidation(MethodArgumentNotValidException ex) {
         Map<String,String> errors = new HashMap<>();
@@ -23,5 +28,7 @@ public class GlobalExceptionHandler {
         });
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
+
+
 
 }
