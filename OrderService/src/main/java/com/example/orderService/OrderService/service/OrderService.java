@@ -75,7 +75,6 @@ public class OrderService {
 
         // TODO : Async Communication
         sendNotification();
-
         return orderDTO;
     }
 

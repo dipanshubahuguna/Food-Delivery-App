@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "Payment-Service",
-            url = "http://localhost:8084",
             path = "/payment")
 public interface PaymentClient {
     @PostMapping(path = "/initiate")
