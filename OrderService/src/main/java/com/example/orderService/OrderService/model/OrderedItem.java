@@ -27,7 +27,7 @@ public class OrderedItem {
     @Column(name = "item_restaurant_id")
     private Long itemRestaurantId;
     @Column(name = "item_qty")
-    private Long itemQty;
+    private Double itemQty;
     @Column(name = "item_price")
     private Double itemPrice;
 

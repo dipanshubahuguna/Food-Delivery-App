@@ -20,7 +20,7 @@ public class CartItem {
     @Column(name = "item_name")
     private String itemName;
     @Column(name = "item_qty")
-    private Long itemQuantity;
+    private Double itemQuantity;
     @Column(name = "item_price")
     private Double itemPrice;
     @Column(name = "restaurant_id")

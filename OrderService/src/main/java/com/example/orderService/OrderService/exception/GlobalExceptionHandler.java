@@ -11,9 +11,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNoOrderFound(NoOrderFoundException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
-
     @ExceptionHandler(EmptyCartException.class)
     public ResponseEntity<String> handleEmptyCart(NoOrderFoundException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+
 }

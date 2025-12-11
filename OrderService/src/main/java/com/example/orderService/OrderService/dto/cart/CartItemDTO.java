@@ -1,21 +1,13 @@
-package com.example.cart.cartService.dto.cartItem;
+package com.example.orderService.OrderService.dto.cart;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class CartItemDTO {
-
     private Long cartItemId;
     private Long menuItemId;
     private Long restaurantId;
     private String itemName;
     private Double itemQuantity;
     private Double itemPrice;
-
 }

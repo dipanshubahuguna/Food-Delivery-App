@@ -1,10 +1,17 @@
 package com.example.orderService.OrderService.service;
 
 import com.example.orderService.OrderService.dto.OrderDTO;
+import com.example.orderService.OrderService.dto.cart.CartItemDTO;
+import com.example.orderService.OrderService.dto.cart.CartResponseDTO;
+import com.example.orderService.OrderService.dto.payment.PaymentRequestDTO;
+import com.example.orderService.OrderService.dto.payment.PaymentResponseDTO;
 import com.example.orderService.OrderService.enums.OrderStatus;
 import com.example.orderService.OrderService.enums.PaymentStatus;
+import com.example.orderService.OrderService.enums.payment.PaymentMode;
 import com.example.orderService.OrderService.exception.EmptyCartException;
 import com.example.orderService.OrderService.exception.NoOrderFoundException;
+import com.example.orderService.OrderService.external.CartClient;
+import com.example.orderService.OrderService.external.PaymentClient;
 import com.example.orderService.OrderService.mapper.OrderMapper;
 import com.example.orderService.OrderService.model.Order;
 import com.example.orderService.OrderService.model.OrderedItem;
@@ -15,6 +22,8 @@ import com.example.orderService.OrderService.util.CartItem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,36 +37,50 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
-
+    private final CartClient cartClient;
+    private final PaymentClient paymentClient;
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
     @Transactional
-    public OrderDTO createOrder(Long userId) {
-/*
-    -  fetchCart() -> Cart Microservice - cart details
-    -  paymentService() -> Payment Service - proceed to payment and waiting for response
-    -  saveOrder() -> save order on payment success/fail
-    -  clearCart() -> Cart Microservice - clearing cart
-    -  notificationService() -> Notification Service - sending notification once order is placed
-*/
-        // fetchCart() - Dummy cart details
-        Cart cartDetails = DummyCart.createDummyCart();
+    public OrderDTO createOrder(Long userId,PaymentMode paymentMode) {
+        log.debug("Placing Order....");
+        log.debug("Getting cart details....");
+        CartResponseDTO cartDetails = cartClient.getCartDetails(userId);
 
         if(cartDetails.getCartItems().isEmpty())
             throw new EmptyCartException("Cart is empty cannot place order !");
 
-        PaymentStatus paymentStatus = initiatePayment();
+        log.debug("Creating order....");
+        OrderDTO orderDTO = saveOrder(cartDetails,PaymentStatus.PENDING);
 
-        OrderDTO orderDTO = saveOrder(cartDetails,paymentStatus);
+        log.debug("Creating Payment object");
+        PaymentRequestDTO paymentRequestDTO = new PaymentRequestDTO(
+                userId,
+                orderDTO.getOrderId(),
+                orderDTO.getTotalAmount(),
+                paymentMode);
 
-        clearCart();
+        log.debug("initiating payment");
+        PaymentResponseDTO paymentResponseDTO = paymentClient.initiatePayment(paymentRequestDTO);
 
-        // should be async - later
+        if(paymentResponseDTO.getPaymentStatus().equals(PaymentStatus.SUCCESS)){
+            log.debug("Payment success");
+            cartClient.deleteCart(userId);
+            orderDTO = saveOrder(cartDetails,PaymentStatus.SUCCESS);
+        }else{
+            log.debug("Payment failed");
+            orderDTO = saveOrder(cartDetails,PaymentStatus.FAILED);
+        }
+
+        log.debug("sending notification");
+
+        // TODO : Async Communication
         sendNotification();
 
         return orderDTO;
-
     }
 
     public OrderDTO getOrderById(Long orderId) {
+        log.debug("Getting order details for order id {}", orderId);
          Order order = orderRepository
                 .findById(orderId)
                 .orElseThrow(() -> new NoOrderFoundException("Order not found !"));
@@ -66,29 +89,17 @@ public class OrderService {
     }
 
     public List<OrderDTO> getOrdersByUserId(Long userId) {
+        log.debug("Getting list of order details for user id {}", userId);
         List<Order> orderList = orderRepository.findAllByUserId(userId);
         List<OrderDTO> orderDTOList = new ArrayList<>();
         for(Order order : orderList){
             orderDTOList.add(OrderMapper.toResponseDTO(order));
         }
-
         if(orderDTOList.size() == 0) throw new NoOrderFoundException("No Orders found for this user !");
-
         return orderDTOList;
     }
 
-    private PaymentStatus initiatePayment() {
-        int min = 10, max = 50;
-        int randomNum = min + (int)(Math.random() * (max - min) + 1);
-        try{
-            Thread.sleep(1000);
-        }catch(Exception e) {
-            e.printStackTrace();
-        }
-        return randomNum % 2 == 0 ? PaymentStatus.FAIL : PaymentStatus.SUCCESS;
-    }
-
-    private OrderDTO saveOrder(Cart cart, PaymentStatus paymentStatus) {
+    private OrderDTO saveOrder(CartResponseDTO cart, PaymentStatus paymentStatus) {
         Order order = new Order();
         order.setUserId(cart.getUserId());
         order.setTotalAmount(cart.getTotalAmount());
@@ -99,7 +110,7 @@ public class OrderService {
         order.setOrderedItems(new ArrayList<>());
 
 
-        for(CartItem cartItem : cart.getCartItems()) {
+        for(CartItemDTO cartItem : cart.getCartItems()) {
             OrderedItem orderedItem = new OrderedItem();
             orderedItem.setMenuItemId(cartItem.getMenuItemId());
             orderedItem.setMenuItemName(cartItem.getItemName());
@@ -116,9 +127,6 @@ public class OrderService {
         return OrderMapper.toResponseDTO(savedOrder);
     }
 
-    private void clearCart() {
-        // call Cart Microservice
-    }
     private void sendNotification() {
         // call Notification Microservice
     }

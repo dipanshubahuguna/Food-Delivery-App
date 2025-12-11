@@ -3,7 +3,7 @@ package com.example.restaurant.restaurantService.dto.menuItem;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class MenuItemRequestDTO {
 
@@ -17,4 +17,10 @@ public class MenuItemRequestDTO {
     @NotNull(message = "Restaurant Id should not be null!")
     @DecimalMin(value = "1.0", message = "item price should be more than 1!")
     private Double itemPrice;
+
+    @Override
+    public String toString() {
+        return "Item name : " + this.itemName +
+                " Item Quantity : " + this.itemQuantity + " Item Price : " + this.itemPrice;
+    }
 }

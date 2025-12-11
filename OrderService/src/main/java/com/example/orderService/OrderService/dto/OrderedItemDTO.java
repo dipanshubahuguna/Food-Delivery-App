@@ -17,6 +17,6 @@ public class OrderedItemDTO {
     private Long menuItemId;
     private String menuItemName;
     private Long itemRestaurantId;
-    private Long itemQty;
+    private Double itemQty;
     private Double itemPrice;
 }
