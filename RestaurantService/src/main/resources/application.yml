@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: restaurant-service
+  profiles:
+    active:
+      - prod
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: CONFIG-SERVER
+server:
+  port: 0
